@@ -1,15 +1,17 @@
 #!/bin/bash
+set -x
 
 flutter emulators --launch $FLUTTER_EMULATOR_NAME
 
 started=0
-while [ $started -eq 0 ] 
-do 
+while [ $started -eq 0 ]
+do
   sleep 1
-  started=$(flutter devices | grep emulator | wc -l)
+  started=$(flutter devices | grep Android | wc -l)
 done
 
-flutter run -d $FLUTTER_EMULATOR_NAME --observatory-port $FLUTTER_DEBUG_PORT
+timeout 30 bash -c 'read ans' # prompt with timeout
+flutter run -d Android --observatory-port $FLUTTER_DEBUG_PORT
 
 /bin/bash /usr/local/bin/chown.sh
 

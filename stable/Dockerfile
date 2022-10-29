@@ -4,24 +4,24 @@ ENV UID=1000
 ENV GID=1000
 ENV USER="developer"
 ENV JAVA_VERSION="8"
-ENV ANDROID_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip"
+ENV ANDROID_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip"
 ENV ANDROID_VERSION="29"
 ENV ANDROID_BUILD_TOOLS_VERSION="29.0.3"
 ENV ANDROID_ARCHITECTURE="x86_64"
 ENV ANDROID_SDK_ROOT="/home/$USER/android"
 ENV FLUTTER_CHANNEL="stable"
-ENV FLUTTER_VERSION="2.2.1"
-ENV FLUTTER_URL="https://storage.googleapis.com/flutter_infra/releases/$FLUTTER_CHANNEL/linux/flutter_linux_$FLUTTER_VERSION-$FLUTTER_CHANNEL.tar.xz"
+ENV FLUTTER_VERSION="3.13.9"
+ENV FLUTTER_URL="https://storage.googleapis.com/flutter_infra_release/releases/$FLUTTER_CHANNEL/linux/flutter_linux_$FLUTTER_VERSION-$FLUTTER_CHANNEL.tar.xz"
 ENV FLUTTER_HOME="/home/$USER/flutter"
 ENV FLUTTER_WEB_PORT="8090"
 ENV FLUTTER_DEBUG_PORT="42000"
 ENV FLUTTER_EMULATOR_NAME="flutter_emulator"
-ENV PATH="$ANDROID_SDK_ROOT/cmdline-tools/tools/bin:$ANDROID_SDK_ROOT/emulator:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/platforms:$FLUTTER_HOME/bin:$PATH"
+ENV PATH="$ANDROID_SDK_ROOT/tools/bin:$ANDROID_SDK_ROOT/tools:$ANDROID_SDK_ROOT/cmdline-tools/tools/bin:$ANDROID_SDK_ROOT/emulator:$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/platforms:$FLUTTER_HOME/bin:$PATH"
 
 # install all dependencies
 ENV DEBIAN_FRONTEND="noninteractive"
 RUN apt-get update \
-  && apt-get install --yes --no-install-recommends openjdk-$JAVA_VERSION-jdk curl unzip sed git bash xz-utils libglvnd0 ssh xauth x11-xserver-utils libpulse0 libxcomposite1 libgl1-mesa-glx sudo \
+  && apt-get install --yes --no-install-recommends openjdk-$JAVA_VERSION-jdk openjdk-11-jdk strace curl unzip sed git bash xz-utils libglvnd0 ssh xauth x11-xserver-utils libpulse0 libxcomposite1 libgl1-mesa-glx sudo \
   && rm -rf /var/lib/{apt,dpkg,cache,log}
 
 # create user
@@ -43,6 +43,7 @@ RUN mkdir -p $ANDROID_SDK_ROOT \
   && mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/tools \
   && mv $ANDROID_SDK_ROOT/cmdline-tools/bin $ANDROID_SDK_ROOT/cmdline-tools/tools \
   && mv $ANDROID_SDK_ROOT/cmdline-tools/lib $ANDROID_SDK_ROOT/cmdline-tools/tools \
+  && ln -s $ANDROID_SDK_ROOT/cmdline-tools/tools $ANDROID_SDK_ROOT/cmdline-tools/latest \
   && yes "y" | sdkmanager "build-tools;$ANDROID_BUILD_TOOLS_VERSION" \
   && yes "y" | sdkmanager "platforms;android-$ANDROID_VERSION" \
   && yes "y" | sdkmanager "platform-tools" \
@@ -58,7 +59,7 @@ RUN curl -o flutter.tar.xz $FLUTTER_URL \
   && flutter precache \
   && yes "y" | flutter doctor --android-licenses \
   && flutter doctor \
-  && flutter emulators --create \
+  && flutter emulators --create --name "$FLUTTER_EMULATOR_NAME" \
   && flutter update-packages
 
 COPY entrypoint.sh /usr/local/bin/
